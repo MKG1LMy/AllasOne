@@ -24,6 +24,27 @@ namespace AllasOne.HediffCompMisc
         public float SaveResearchPoint = 0;//贮存溢出研究点
         private ResearchProjectDef Project => Find.ResearchManager.GetProject();
 
+        public override void PostAdd(DamageInfo? dinfo)
+        {
+            base.PostAdd(dinfo);
+            if (pawn.Spawned)
+            {
+                var mgr = AAO_WorldComponent_MechanoidConsciousnessManager.Instance;
+                mgr.MechanoidConsciousness = pawn;
+
+                if (pawn.Faction != Faction.OfPlayer) pawn.SetFaction(Faction.OfPlayer);
+
+                if (pawn.Spawned) pawn.DeSpawn(); // 只退场，不销毁
+
+                // 清理可能的借宿/囚犯状态（避免读档后被系统处理成其他阵营）
+                Find.WorldPawns.PassToWorld(pawn);
+
+                pawn.SetFaction(Faction.OfPlayer); // 再保险一次
+
+                LinkAllControlledMechsToOverseer(pawn);
+                Find.ColonistBar.MarkColonistsDirty();
+            }
+        }
 
         //开局初始化
         public override void Notify_Spawned()
@@ -55,47 +76,9 @@ namespace AllasOne.HediffCompMisc
 
             foreach (var mech in controlled)
             {
-                if (mech.skills == null)
-                {
-                    mech.skills = new Pawn_SkillTracker(mech);
-                }
-                mech.skills.skills = overseer.skills.skills; //连接overseer的技能
 
-                //Log.Message($"[AllasOne] Linked mech skills: {mech.LabelShort} (#{mech.thingIDNumber}) " +$"→ {overseer.LabelShort} (#{overseer.thingIDNumber})");
-                if (mech.interactions == null)
-                {
-                    mech.interactions = new Pawn_InteractionsTracker(mech);
-                }
-
-                if (mech.story == null) //连接overseer的traits
-                {
-                    mech.story = new Pawn_StoryTracker(mech);
-                    mech.story.traits = overseer.story.traits;
-                    mech.story.Childhood = overseer.story.Childhood;
-                    mech.story.Adulthood = overseer.story.Adulthood;
-                }
-
-                //Log.Message($"[AllasOne] Linked mech traits: {mech.LabelShort} (#{mech.thingIDNumber}) " +$"→ {overseer.LabelShort} (#{overseer.thingIDNumber})");
-
-                if (mech.genes == null)
-                {
-                    // 初始化机械族的 GeneTracker
-                    mech.genes = new Pawn_GeneTracker(mech);
-                    mech.genes.xenotypeName = "AAO_Mechanoid".Translate();
-
-                    // 若监管者有基因则将其基因复制给机械族（仅初始化一次）
-                    if (overseer.genes != null && overseer.genes.Xenogenes != null)
-                    {
-                        foreach (var gene in overseer.genes.Xenogenes)
-                        {
-                            // 仅复制基因定义，不复制引用，避免共享同一实例
-                            Gene newGene = GeneMaker.MakeGene(gene.def, mech);
-                            mech.genes.AddGene(gene.def, true);
-                        }
-                        //Log.Message($"[AllasOne] Initialized mech genes from overseer: {mech.LabelShort} ← {overseer.LabelShort}");
-                    }
-                }
-
+                LinkMechToOverseer(overseer, mech);
+                
             }
         }
 
@@ -114,6 +97,12 @@ namespace AllasOne.HediffCompMisc
             if (mech.interactions == null)
             {
                 mech.interactions = new Pawn_InteractionsTracker(mech);
+            }
+
+            if (mech.royalty == null)
+            {
+                mech.royalty = new Pawn_RoyaltyTracker(mech);
+                mech.royalty = overseer.royalty;
             }
 
             if (mech.story == null) //连接overseer的traits
