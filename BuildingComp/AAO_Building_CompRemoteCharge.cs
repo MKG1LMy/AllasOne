@@ -29,17 +29,17 @@ namespace AllasOne.BuildingComp
 
         private CompPowerTrader PowerTrader => parent.TryGetComp<CompPowerTrader>();
 
-        private bool IsPawnAffected(Pawn target)
+        private bool IsPawnAffected(Pawn target)//检查目标是否符合充能条件
         {
-            if (PowerTrader != null && !PowerTrader.PowerOn)
+            if (PowerTrader != null && !PowerTrader.PowerOn) //检查电源是否接通
             {
                 return false;
             }
-            if (target.Dead)
+            if (target.Dead) //检查目标是否存活
             {
                 return false;
             }
-            if (target.RaceProps.IsMechanoid && target.IsColonyMech && target.needs?.energy != null)
+            if (target.RaceProps.IsMechanoid && target.IsColonyMech && target.needs?.energy != null && target.needs.energy.CurLevel < target.needs.energy.MaxLevel) //检查目标是否为机械族殖民者且有能量需求
             {
                 return target.PositionHeld.DistanceTo(parent.PositionHeld) <= range;
             }

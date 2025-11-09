@@ -45,12 +45,12 @@ namespace AllasOne.BuildingComp
             float statValue;
             float ResearchPoint = Props.researchPoint * 121;
 
-            if (MC != null && Props.ResearchByMc)
+            if (MC != null && Props.ResearchByMc && Project != null)
             {
                 statValue = MC.GetStatValue(StatDefOf.ResearchSpeed);
                 Find.ResearchManager.ResearchPerformed(Props.ResearchSpeedFactor * statValue * ResearchPoint, MC);
                 MC.skills.Learn(SkillDefOf.Intellectual, 0.1f * ResearchPoint);
-                if (SavePoint >= 0)
+                if (SavePoint >= 0 && Project != null)
                 {
                     float num = SavePoint * 121f;
                     Find.ResearchManager.ResearchPerformed(Props.ResearchSpeedFactor * statValue * num, MC);
@@ -58,7 +58,7 @@ namespace AllasOne.BuildingComp
                     SavePoint = 0;
                 }
             }
-            else
+            else if( Project != null )
             {
                 statValue = 1;
                 Find.ResearchManager.AddProgress(Project , Props.ResearchSpeedFactor * statValue * Props.researchPoint);

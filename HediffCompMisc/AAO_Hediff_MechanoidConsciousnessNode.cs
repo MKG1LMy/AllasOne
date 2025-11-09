@@ -36,10 +36,10 @@ namespace AllasOne.HediffCompMisc
 
                 if (pawn.Spawned) pawn.DeSpawn(); // 只退场，不销毁
 
-                // 清理可能的借宿/囚犯状态（避免读档后被系统处理成其他阵营）
-                Find.WorldPawns.PassToWorld(pawn);
+                //// 清理可能的借宿/囚犯状态（避免读档后被系统处理成其他阵营）
+                //Find.WorldPawns.PassToWorld(pawn);
 
-                pawn.SetFaction(Faction.OfPlayer); // 再保险一次
+                //pawn.SetFaction(Faction.OfPlayer); // 再保险一次
 
                 LinkAllControlledMechsToOverseer(pawn);
                 Find.ColonistBar.MarkColonistsDirty();
@@ -57,10 +57,10 @@ namespace AllasOne.HediffCompMisc
 
             if (pawn.Spawned) pawn.DeSpawn(); // 只退场，不销毁
 
-            // 清理可能的借宿/囚犯状态（避免读档后被系统处理成其他阵营）
-            Find.WorldPawns.PassToWorld(pawn);
+            //// 清理可能的借宿/囚犯状态（避免读档后被系统处理成其他阵营）
+            //Find.WorldPawns.PassToWorld(pawn);
 
-            pawn.SetFaction(Faction.OfPlayer); // 再保险一次
+            //pawn.SetFaction(Faction.OfPlayer); // 再保险一次
 
             LinkAllControlledMechsToOverseer(pawn);
 
@@ -164,20 +164,20 @@ namespace AllasOne.HediffCompMisc
             if (tickAcc == TickCountToResearch)
             {
                 tickAcc = 0;
-                int UsedBand = pawn.mechanitor?.UsedBandwidth ?? 0;
+                int CanUseBand = (pawn.mechanitor?.TotalBandwidth - pawn.mechanitor?.UsedBandwidth) ?? 0;                
                 float statValue = pawn.GetStatValue(StatDefOf.ResearchSpeed);
-                float researchGained = BasePerBandwidthPerSec * UsedBand * 121.0f;
+                float researchGained = BasePerBandwidthPerSec * CanUseBand * 121.0f;
 
                 if (researchGained > 0 && Project != null)
                 {                    
                     Find.ResearchManager.ResearchPerformed(statValue * researchGained, pawn);
-                    pawn.skills.Learn(SkillDefOf.Intellectual, LearningSpeed * UsedBand);
+                    pawn.skills.Learn(SkillDefOf.Intellectual, LearningSpeed * CanUseBand);
                     //Log.Message($"[AllasOne] MechConscious research gain: {(float)(BasePerBandwidthPerSec * statValue * UsedBand)} (UsedBand: {UsedBand}) TargetProject:{Project.label}");
                 }
                 else if (researchGained > 0 && Project == null)
                 {
                     SaveResearchPoint += statValue * researchGained;
-                    pawn.skills.Learn(SkillDefOf.Intellectual, LearningSpeed * UsedBand);
+                    pawn.skills.Learn(SkillDefOf.Intellectual, LearningSpeed * CanUseBand);
                     //Log.Message($"[AllasOne] MechConscious research save SaveResearchPoint: {(float)(BasePerBandwidthPerSec * statValue * UsedBand)} (UsedBand: {UsedBand}) NowHavePoing:{SaveResearchPoint / 121.0f}");
                 }
 
